@@ -11,7 +11,7 @@ const GradingPortal = ({ assignment, onBack }) => {
 
     useEffect(() => {
         setIsLoading(true);
-        fetch(`http://localhost:8080/api/submissions/assignment/${assignment.id}`)
+        fetch(`https://fsad-backend-project-production.up.railway.app/api/submissions/assignment/${assignment.id}`)
             .then(res => {
                 if (!res.ok) throw new Error("API error");
                 return res.json();
@@ -51,7 +51,7 @@ const GradingPortal = ({ assignment, onBack }) => {
         e.preventDefault();
         
         try {
-            const response = await fetch(`http://localhost:8080/api/submissions/${selectedSubmission.id}/grade`, {
+            const response = await fetch(`https://fsad-backend-project-production.up.railway.app/api/submissions/${selectedSubmission.id}/grade`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -80,7 +80,7 @@ const GradingPortal = ({ assignment, onBack }) => {
 
     const downloadFile = () => {
         if (!selectedSubmission) return;
-        window.open(`http://localhost:8080/api/submissions/${selectedSubmission.id}/download`, '_blank');
+        window.open(`https://fsad-backend-project-production.up.railway.app/api/submissions/${selectedSubmission.id}/download`, '_blank');
     };
 
     if (isLoading) {

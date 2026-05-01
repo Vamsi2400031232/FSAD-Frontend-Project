@@ -18,7 +18,7 @@ const AppContent = () => {
     const [isLandingView, setIsLandingView] = useState(true);
     
     useEffect(() => {
-        fetch('http://localhost:8080/api/assignments')
+        fetch('https://fsad-backend-project-production.up.railway.app/api/assignments')
             .then(res => res.json())
             .then(data => setAssignments(data))
             .catch(err => console.error("Error fetching assignments:", err));
@@ -42,29 +42,39 @@ const AppContent = () => {
         setView(user.role === 'teacher' ? 'grade' : 'detail');
     };
 
-    const handleCreateAssignment = async (newAssignment) => {
+    const handleSaveAssignment = async (assignmentData) => {
+        const isEdit = !!assignmentData.id;
+        const url = isEdit 
+            ? `https://fsad-backend-project-production.up.railway.app/api/assignments/${assignmentData.id}` 
+            : 'https://fsad-backend-project-production.up.railway.app/api/assignments';
+        const method = isEdit ? 'PUT' : 'POST';
+
         try {
-            const response = await fetch('http://localhost:8080/api/assignments', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newAssignment)
+                body: JSON.stringify(assignmentData)
             });
             if (response.ok) {
                 const savedAssignment = await response.json();
-                setAssignments([savedAssignment, ...assignments]);
+                if (isEdit) {
+                    setAssignments(assignments.map(a => a.id === savedAssignment.id ? savedAssignment : a));
+                } else {
+                    setAssignments([savedAssignment, ...assignments]);
+                }
                 setView('dashboard');
             } else {
-                alert("Failed to create assignment on server");
+                alert(`Failed to ${isEdit ? 'update' : 'create'} assignment on server`);
             }
         } catch (error) {
-            console.error("Error creating assignment:", error);
+            console.error(`Error ${isEdit ? 'updating' : 'creating'} assignment:`, error);
             alert("Error connecting to server");
         }
     };
 
     const handleDeleteAssignment = async (assignmentId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/assignments/${assignmentId}`, {
+            const response = await fetch(`https://fsad-backend-project-production.up.railway.app/api/assignments/${assignmentId}`, {
                 method: 'DELETE'
             });
             if (response.ok) {
@@ -101,7 +111,8 @@ const AppContent = () => {
                             assignments={assignments}
                             selectedAssignment={selectedAssignment}
                             onSelect={handleSelectAssignment}
-                            onSave={handleCreateAssignment}
+                            onEdit={(a) => { setSelectedAssignment(a); setView('edit'); }}
+                            onSave={handleSaveAssignment}
                             onDelete={handleDeleteAssignment}
                         />
                     )}
@@ -117,7 +128,7 @@ const StudentPortal = ({ view, setView, assignments, selectedAssignment, onSelec
     
     useEffect(() => {
         if (user) {
-            fetch(`http://localhost:8080/api/submissions/student/${user.id}`)
+            fetch(`https://fsad-backend-project-production.up.railway.app/api/submissions/student/${user.id}`)
                 .then(res => {
                     if (!res.ok) throw new Error("API error");
                     return res.json();
@@ -166,9 +177,13 @@ const StudentPortal = ({ view, setView, assignments, selectedAssignment, onSelec
     );
 };
 
-const TeacherPortal = ({ view, setView, assignments, selectedAssignment, onSelect, onSave, onDelete }) => {
-    if (view === 'create') {
-        return <AssignmentCreator onCancel={() => setView('dashboard')} onSave={onSave} />;
+const TeacherPortal = ({ view, setView, assignments, selectedAssignment, onSelect, onSave, onDelete, onEdit }) => {
+    if (view === 'create' || view === 'edit') {
+        return <AssignmentCreator 
+            onCancel={() => setView('dashboard')} 
+            onSave={onSave} 
+            assignment={view === 'edit' ? selectedAssignment : null} 
+        />;
     }
 
     if (view === 'grade') {
@@ -190,6 +205,7 @@ const TeacherPortal = ({ view, setView, assignments, selectedAssignment, onSelec
                 assignments={assignments}
                 onSelect={onSelect}
                 onDelete={onDelete}
+                onEdit={onEdit}
             />
         </div>
     );

@@ -13,7 +13,7 @@ const AssignmentDetail = ({ assignment, onBack }) => {
 
     useEffect(() => {
         if (user && assignment) {
-            fetch(`http://localhost:8080/api/submissions/student/${user.id}`)
+            fetch(`https://fsad-backend-project-production.up.railway.app/api/submissions/student/${user.id}`)
                 .then(res => {
                     if (!res.ok) throw new Error("API error");
                     return res.json();
@@ -44,7 +44,7 @@ const AssignmentDetail = ({ assignment, onBack }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/submissions', {
+            const response = await fetch('https://fsad-backend-project-production.up.railway.app/api/submissions', {
                 method: 'POST',
                 body: formData
             });
